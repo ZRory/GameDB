@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>游戏数据库</title>
+<!-- Bootstrap -->
+<link
+	href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css"
+	rel="stylesheet">
+<!-- jQuery (Bootstrap 的所有 JavaScript 插件都依赖 jQuery，所以必须放在前边) -->
+<script src="https://cdn.bootcss.com/jquery/2.2.2/jquery.min.js"></script>
+<!-- 加载 Bootstrap 的所有 JavaScript 插件。你也可以根据需要只加载单个插件。 -->
+<script
+	src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<style>
+body {
+	margin-top: 25px;
+	margin-left: 10%;
+	margin-right: 10%;
+}
+
+.table tbody tr td {
+	vertical-align: middle;
+}
+
+button.btn-link {
+	padding: 0;
+}
+
+a:hover {
+	text-decoration: none
+}
+
+.modal-body {
+	text-align: center;
+}
+
+#coverImg {
+	width: 268px;
+}
+
+#notifyImg {
+	width: 360px;
+}
+
+#navigation {
+	text-align: center;
+}
+
+.notify {
+	color: red;
+}
+</style>
+
+<script type="text/javascript">
+	$(function() {
+		var rows = 10;
+		var page = 1;
+		var count = null;
+		var lastPage = null;
+
+		selectGame();
+		selectCount();
+
+		$('.searchKey').click(function() {
+			page = 1;
+			selectGame();
+		});
+
+		function selectGame() {
+			$.ajax({
+				type : 'POST',
+				url : './game/selectPage',
+				data : {
+					page : page,
+					rows : rows,
+					keyword : $('#keyword').val()
+				},
+				success : function(response) {
+					handleGameRes(response);
+					selectCount();
+				},
+				dataType : 'json'
+			});
+		}
+
+		function selectCount() {
+			$.ajax({
+				type : 'POST',
+				url : './game/count',
+				data : {
+					keyword : $('#keyword').val()
+				},
+				success : function(response) {
+					handleCountRes(response);
+				},
+				dataType : 'json'
+			});
+		}
+
+		function handleCountRes(response) {
+			count = response.data;
+			lastPage = Math.ceil(count / rows);
+			handlePage();
+		}
+
+		function handleGameRes(response) {
+			var data = response.data;
+			var html = "";
+			if (data == null || data.length == 0) {
+				html = "<tr><th colspan=6 style='text-align: center; color: red'>没有找到结果,请缩小关键词范围后重试</th></tr>";
+			} else {
+				for (var i = 0; i < data.length; i++) {
+					var game = eval(data[i]);
+					var tr = "<tr><td>"
+							+ game.id
+							+ "</td><td>"
+							+ game.nameZh
+							+ "</td><td>"
+							+ game.nameEn
+							+ "</td><td>"
+							+ game.size
+							+ "</td><td>"
+							+ "<button type='button' url="+ game.cover +" class='btn btn-link coverBtn' data-toggle='modal' data-target='#coverModal'>点击查看</button></td><td>";
+					if (game.thunderLink != null) {
+						tr = tr
+								+ " <a href="+ game.thunderLink +"><button type='button' class='btn btn-info'>迅雷下载</button></a>"
+					}
+					if (game.torrentLink != null) {
+						tr = tr
+								+ " <a href="+ game.torrentLink +"><button type='button' class='btn btn-info'>BT下载</button></a>"
+					}
+					tr += "</td>";
+					html += tr;
+				}
+			}
+
+			$('#gameList').html(html);
+		}
+
+		function handlePage() {
+			var html = "";
+			//首页及上一页
+			if (page == 1) {
+				html += "<li  class='disabled'><a>首页</a></li>";
+				html += "<li class='disabled'><a aria-label='Previous'> <span aria-hidden='true'>&laquo;</span></a></li>"
+			} else {
+				html += "<li><a class='firstPage'>首页</a></li>";
+				html += "<li><a aria-label='Previous' class='prePage'> <span aria-hidden='true'>&laquo;</span></a></li>"
+			}
+			//渲染中间页码
+			var beginPage = null;
+			var endPage = null;
+			if (page < 4) {
+				beginPage = 1;
+				endPage = 1 + 6;
+			} else if (page > lastPage - 3) {
+				beginPage = parseInt(lastPage) - 6;
+				endPage = lastPage;
+			} else {
+				beginPage = parseInt(page) - 3;
+				endPage = parseInt(page) + 3;
+			}
+			for (beginPage; beginPage <= endPage; beginPage++) {
+				if (beginPage > 0 && beginPage <= lastPage) {
+					if (beginPage == page) {
+						html += "<li class='active'><a>" + beginPage
+								+ "</a></li>";
+					} else {
+						html += "<li><a class='page'>" + beginPage
+								+ "</a></li>";
+					}
+				}
+			}
+			//末页及下一页
+			if (lastPage == 0 || page == lastPage) {
+				html += "<li class='disabled'><a aria-label='Next'> <span aria-hidden='true'>&raquo;</span></a></li>"
+				html += "<li  class='disabled'><a>末页</a></li>";
+			} else {
+				html += "<li><a aria-label='Next' class='nextPage'> <span aria-hidden='true'>&raquo;</span></a></li>"
+				html += "<li><a class='lastPage'>末页</a></li>";
+			}
+			$("#pagination").html(html);
+		}
+
+		$("#gameList").on("click", ".coverBtn", function() {
+			$("img#coverImg").attr("src", $(this).attr("url"));
+		});
+
+		$(".pagination").on("click", ".page", function() {
+			page = $(this).html();
+			selectGame();
+		});
+
+		$(".pagination").on("click", ".firstPage", function() {
+			page = 1;
+			selectGame();
+		});
+
+		$(".pagination").on("click", ".lastPage", function() {
+			page = lastPage;
+			selectGame();
+		});
+
+		$(".pagination").on("click", ".prePage", function() {
+			if (page > 1) {
+				page = parseInt(page) - 1;
+			}
+			selectGame();
+		});
+
+		$(".pagination").on("click", ".nextPage", function() {
+			if (page < lastPage) {
+				page = parseInt(page) + 1;
+			}
+			selectGame();
+		});
+
+	});
+</script>
+</head>
+<body>
+	<div class="input-group">
+		<input id="keyword" type="text" class="form-control"
+			placeholder="搜索你想要的"> <span class="input-group-btn">
+			<button class="btn btn-success searchKey" type="button">
+				<i class="glyphicon glyphicon-search" aria-hidden="true"> 搜索</i>
+			</button>
+		</span>
+	</div>
+	<br />
+	<div class="notify">
+		公告:支付宝首页搜索"9702808"即可领红包 <a data-toggle='modal'
+			data-target='#notifyModal'>点击扫描二维码领红包</a>
+	</div>
+	<br />
+	<div class="notify">搜索建议:!!本系统不支持关系查询!!,如搜索"《侠盗猎车手5》 Grand Theft
+		Auto V",不要使用GTA等游戏缩写或别名.请搜索|侠盗|侠盗猎车|侠盗猎车手|Grand|Grand Theft Auto|</div>
+	<br />
+	<div class="table-responsive">
+		<table class="table table-bordered table-hover">
+			<thead>
+				<tr>
+					<th>#</th>
+					<th>游戏名(中)</th>
+					<th>游戏名(外)</th>
+					<th>大小</th>
+					<th>封面图片</th>
+					<th>操作</th>
+				</tr>
+			</thead>
+			<tbody id="gameList">
+			</tbody>
+		</table>
+
+		<!-- 导航条 -->
+		<nav aria-label="navigation" id="navigation">
+			<ul id="pagination" class="pagination">
+			</ul>
+		</nav>
+
+		<!-- Modal -->
+		<div class="modal fade" id="coverModal" tabindex="-1" role="dialog"
+			aria-labelledby="coverModalLabel">
+			<div class="modal-dialog modal-sm" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal"
+							aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+						</button>
+						<h4 class="modal-title" id="coverModalLabel">游戏封面</h4>
+					</div>
+					<div class="modal-body">
+						<img onerror="javascript:this.src='./code.jpg';" id="coverImg"
+							src="">
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Modal -->
+		<div class="modal fade" id="notifyModal" tabindex="-1" role="dialog"
+			aria-labelledby="notifyModalLabel">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal"
+							aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+						</button>
+						<h4 class="modal-title" id="notifyModalLabel">支付宝扫码领红包</h4>
+					</div>
+					<div class="modal-body">
+						<img
+							onerror="javascript:this.src='http://img.soft5566.com/pic/nopic.png';"
+							id="notifyImg" src="./code.jpg">
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		<hr />
+		<div id="ecbox">
+			<h2>免责声明</h2>
+			<div class="icbp">
+				<p>游戏数据库网免责声明：</p>
+				<p>1、本站所有资源全部收集于互联网，分享目的仅供大家学习与参考，如有侵权，请联系roryzh@qq.com及时删除！</p>
+				<p>2、本站资源不保证其完整性和安全性，下载后请自行检测安全，在使用过程中出现的任何问题均与本站无关，请自行处理！</p>
+				<p>
+					3、本站为完全免费分享资源社区，所有资源问题，本站没责任，更没义务提供任何性质的技术支持，需要技术支持的请购买官方商业版！</p>
+				<p>4、访问(游戏数据库网)的用户必须明白，(游戏数据库网)对提供下载的软件及其它资源不拥有任何权利，其版权归该下载资源的合法拥有者所有！</p>
+			</div>
+		</div>
+		<hr />
+	</div>
+</body>
+</html>

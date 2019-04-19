@@ -1,0 +1,28 @@
+server:
+  port: 9999
+spring:
+  application:
+    name: GameDB
+  resources:
+    static-locations: classpath:/static/,classpath:/views/
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    url: jdbc:mysql://localhost:3306/game?characterEncoding=utf-8&autoReconnectForPools=true&useSSL=false
+    driverClassName: com.mysql.jdbc.Driver
+    username: root
+    password: GameDB123456
+mybatis:
+  type-aliases-package: vip.rory.gamedb.model
+  mapper-locations: classpath:mapper/*.xml
+mapper:
+  mappers:
+  - vip.rory.gamedb.util.MyMapper
+  not-empty: false
+  identity: MYSQL
+pagehelper:
+  helperDialect: mysql
+  reasonable: true
+  supportMethodsArguments: true
+  params: count=countSql
+appConfig:
+  sourceUrl: http://www.soft5566.com/down/{page}-1.html

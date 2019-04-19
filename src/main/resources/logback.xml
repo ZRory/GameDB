@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<configuration>
+
+	<include
+		resource="org/springframework/boot/logging/logback/defaults.xml" />
+	<include
+		resource="org/springframework/boot/logging/logback/console-appender.xml" />
+	<property name="logFilePath" value="/datadisk/log/gamedb/" />
+
+	<appender name="DebugRollingFile"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+			<level>DEBUG</level>
+		</filter>
+		<file>${logFilePath}gamedb_debug.log</file>
+		<rollingPolicy
+			class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+			<fileNamePattern>${logFilePath}%d{yyyy-MM-dd}/gamedb_debug.%i.log
+			</fileNamePattern>
+			<maxFileSize>15MB</maxFileSize>
+			<maxHistory>90</maxHistory>
+			<totalSizeCap>5GB</totalSizeCap>
+		</rollingPolicy>
+		<encoder charset="UTF-8">
+			<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %level %logger %M %L - %msg%n</pattern>
+		</encoder>
+	</appender>
+
+	<appender name="ErrorRollingFile"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+			<level>ERROR</level>
+		</filter>
+		<file>${logFilePath}gamedb_error.log</file>
+		<rollingPolicy
+			class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+			<fileNamePattern>${logFilePath}%d{yyyy-MM-dd}/gamedb_error.%i.log
+			</fileNamePattern>
+			<maxFileSize>15MB</maxFileSize>
+			<maxHistory>90</maxHistory>
+			<totalSizeCap>5GB</totalSizeCap>
+		</rollingPolicy>
+		<encoder charset="UTF-8">
+			<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %level %logger %M %L - %msg%n</pattern>
+		</encoder>
+	</appender>
+
+	<appender name="InfoRollingFile"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+			<level>INFO</level>
+		</filter>
+		<file>${logFilePath}gamedb.log</file>
+		<rollingPolicy
+			class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+			<fileNamePattern>${logFilePath}%d{yyyy-MM-dd}/gamedb.%i.log
+			</fileNamePattern>
+			<maxFileSize>15MB</maxFileSize>
+			<maxHistory>90</maxHistory>
+			<totalSizeCap>5GB</totalSizeCap>
+		</rollingPolicy>
+		<encoder charset="UTF-8">
+			<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %level %logger %M %L - %msg%n</pattern>
+		</encoder>
+	</appender>
+
+	<root level="INFO">
+		<!-- <appender-ref ref="DebugRollingFile" /> -->
+		<appender-ref ref="ErrorRollingFile" />
+		<appender-ref ref="InfoRollingFile" />
+		<appender-ref ref="CONSOLE" />
+	</root>
+
+</configuration>
